@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'YoutubeService.Game',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -73,13 +75,15 @@ WSGI_APPLICATION = 'YoutubeService.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = { 
+DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': 'mongo',
         'HOST': 'youtubedb'
     }   
+        
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
