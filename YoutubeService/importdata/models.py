@@ -44,7 +44,7 @@ class YouTubeSearch(models.Model):
     regionCode = models.CharField(
         ('Region Code'),
         help_text=(''),
-        max_lenght=10,
+        max_length=10,
         null=True
     )
 

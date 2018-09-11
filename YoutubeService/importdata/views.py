@@ -17,10 +17,11 @@ class YouTubeView(APIView):
         YouTubeSearch.objects.all().delete()
         header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
         'Accept': 'application/json'}
-        url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format('GTA V', header['user-key'])
-        data = requests.get(url, headers=header)
+        url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format('PUBG', header['user-key'])
+        data = requests.get(url, headers=header['Accept'])
         ndata = data.json()
 
+        print(ndata)
         for gamedata in ndata:
             filtered_data = self.filter_data(gamedata)
             self.save_game(filtered_data)
@@ -35,42 +36,70 @@ class YouTubeView(APIView):
         return Response(data=ndata)
 
     def filter_data(self, gamedata):
-        if 'id' in gamedata:
-            id = gamedata['id']
+        
+        if 'items' in gamedata:
+
+            if 'id' in gamedata['items']:
+                
+                if 'videoId' in gamedata['items']['id']:
+                    id = gamedata['items']['id']['videoId']
+            
+                else:
+                    id = None
+
+            else:
+                id = None
+
         else:
             id = None
-        if 'name' in gamedata:
-            name = gamedata['name']
-        else:
-            name = None
 
-        if 'count_views' in gamedata:
-            count_views= gamedata['count_views']
-        else:
-            count_views = None
+                    
+            if 'name' in gamedata:
+                name = gamedata['name']
+            else:
+                name = None
 
-        if 'count_likes' in gamedata:
-            count_likes= gamedata['count_likes']
-        else:
-            count_likes = None
+            
+            
+        if 'items' in gamedata:    
+            
+            if 'viewCount' in gamedata['items']:
+                count_views=gamedata['items']['viewCount']
+            else:
+                count_views=None
 
-        if 'count_dislikes' in gamedata:
-            count_dislikes= gamedata['count_dislikes']
-        else:
-            count_dislikes = None
+            if 'likeCount' in gamedata['items']:
+                count_likes=gamedata['items']['likeCount']
+            else:
+                count_views=None
 
-        if 'count_comments' in gamedata:
-            count_comments= gamedata['count_comments']
-        else:
-            count_comments = None
+            if 'dislikeCount' in gamedata:
+                count_dislikes=gamedata['items']['dislikeCount']
 
+            if 'commentCount' in gamedata:
+                count_comments= gamedata['items']['commentCount']
+            else:
+                count_comments = None
+
+            if 'regionCode' in gamedata:
+                regionCode= gamedata['items']['regionCode']
+            else:
+                regionCode = None
+
+        else:
+            count_views=None
+            count_likes=None
+            count_dislikes=None
+            count_comments=None
+            
+        
         if 'regionCode' in gamedata:
             regionCode= gamedata['regionCode']
         else:
             regionCode = None
-
+        
         filtered_data = {
-            'id': id,
+        'id': id,
             'name': name,
             'count_views': count_views,
             'count_likes': count_likes,
@@ -82,7 +111,7 @@ class YouTubeView(APIView):
 
     def save_youtube_search(self, filtered_data):
         results = YouTubeSearch(
-            id = filtered_data['id'],
+            id = filtered_data['id']
             name = filtered_data['name'],
             count_views = filtered_data['count_views'],
             count_likes = filtered_data['count_likes'],
