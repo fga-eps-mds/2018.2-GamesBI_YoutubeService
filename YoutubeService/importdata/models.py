@@ -9,7 +9,7 @@ class YouTubeSearch(models.Model):
         max_length=100,
         primary_key=True
     )
-
+    '''
     name = models.CharField(
         ('Name'),
         help_text=('Name of the game'),
@@ -40,14 +40,14 @@ class YouTubeSearch(models.Model):
         help_text=('Number of comment'),
         null=True
     )
-
+    '''
     regionCode = models.CharField(
-        ('Region Code'),
+        ('regionCode'),
         help_text=(''),
         max_length=10,
         null=True
     )
-
+    
     def __str__(self):
         """
 	    Returns the object as a string, the attribute that will represent
