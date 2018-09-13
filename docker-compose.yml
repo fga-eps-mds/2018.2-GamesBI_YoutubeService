@@ -1,13 +1,13 @@
 version: '3.5'
 
 services:
-  db:
+  youtubedb:
     image: mongo
     ports:
       - "27020:27017"
     networks:
       - proxynet
-  web:
+  youtubeweb:
     build: .
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
@@ -15,7 +15,7 @@ services:
     ports:
       - "8003:8000"
     depends_on:
-      - db
+      - youtubedb
     networks:
       - proxynet
 

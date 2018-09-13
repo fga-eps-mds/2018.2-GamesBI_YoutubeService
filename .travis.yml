@@ -12,7 +12,7 @@ before_install:
 script: 
   - docker-compose up -d
   - sleep 10
-  - docker-compose run web coverage run --source=. manage.py test
+  - docker-compose run youtubeweb coverage run --source=. manage.py test
 
 after_success:
   - coveralls
