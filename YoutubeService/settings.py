@@ -77,7 +77,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': 'mongo',
-        'HOST': 'db'
+        'HOST': 'youtubedb'
     }   
 }
 
