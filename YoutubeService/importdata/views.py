@@ -8,21 +8,22 @@ from .models import YouTubeSearch
 
 class YouTubeView(APIView):
     '''
-        View that calls IGDB API
+        View that calls Youtube API
         and return some relevant
-        information about a game
-        and filter for Null value
+        information about a video
+        and filter
     '''
-    
+
     def get(self, request, format=None):
-        
+
         YouTubeSearch.objects.all().delete()
         header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
         'Accept': 'application/json'}
-        url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format('PUBG', header['user-key'])
+        url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format('GTAV', header['user-key'])
         data = requests.get(url)
         ndata = data.json()
 
+ 
 
         filtered_data = self.filter_data(ndata)
         self.save_youtube_search(filtered_data)
@@ -52,16 +53,33 @@ class YouTubeView(APIView):
 
 
 
-    def filter_data(self, gamedata, dataVD):
-        
+        for i in range(50):
+            video_data = sel.get_video(list_id[i])
+            filter_data_video = self.filter_data_video(video_data)
+            if filter_data_video:
+                self.save_youtube_search(filter_data_video)
+
+        return Response(data=ndata)
+
+    def get_video(self, idvideo):
+        YouTubeSearch.objects.all().delete()
+        header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
+        'Accept': 'application/json'}
+
+        url = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id={}&key=AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw'.format(['videoId'])
+        data = requests.get(url)
+        ndata = data.json()
+        return Response(data=ndata)
+
+    def filter_data(self, videodata):
+
         list_id = []
 
         for i in range(50):
-            if 'items' in gamedata:
-                if 'id' in gamedata['items'][i]:
-                    if 'videoId' in gamedata['items'][i]['id']:
-                        id = gamedata['items'][i]['id']['videoId']
-                        print('\nid aqui: ', id)
+            if 'items' in videodata:
+                if 'id' in videodata['items'][i]:
+                    if 'videoId' in videodata['items'][i]['id']:
+                        id = videodata['items'][i]['id']['videoId']
                         list_id.append(id)
                     else:
                         id = None
@@ -101,32 +119,39 @@ class YouTubeView(APIView):
                 count_comments= videodata['Unid'][0]['commentCount']
             else:
                 count_comments = None
-        print('------------')        
-        print(list_id)
-        print('------------')
             
 
-        if 'regionCode' in gamedata:
-            regionCode = gamedata['regionCode']
+        print('------------')
+        print(list_id)
+        print('------------')
+
+        if 'regionCode' in videodata:
+            regionCode = videodata['regionCode']
         else:
             regionCode = None
 
-        
-        count_views = dataVD['items'][0]['statistics']['viewCount']
-        count_likes = dataVD['items'][0]['statistics']['likeCount']
-        count_dislikes = dataVD['items'][0]['statistics']['dislikeCount']
-        count_favorites = dataVD['items'][0]['statistics']['favoriteCount']
-        count_comments = dataVD['items'][0]['statistics']['commentCount']
+        filtered_data = {
+            'list_id': list_id,
+            'regionCode': regionCode
+        }
+        return filtered_data
 
+    def filter_data_video(self, videodata):
+
+        count_views = videodata['items'][0]['statistics']['viewCount']
+        count_likes = videodata['items'][0]['statistics']['likeCount']
+        count_dislikes = videodata['items'][0]['statistics']['dislikeCount']
+        count_favorites = videodata['items'][0]['statistics']['favoriteCount']
+        count_comments = videodata['items'][0]['statistics']['commentCount']
 
         '''
-        print('----------------\n', dataVD)
-        if 'items' in dataVD:
+        print('----------------\n', videodata)
+        if 'items' in videodata:
             print('tem item')
-            if 'statistics' in dataVD['items']:
+            if 'statistics' in videodata['items']:
                 print('tem statistics\n')
-                if 'viewCount' in dataVD['items']['statistics']:
-                    count_views = dataVD['items']['statistics']['viewCount']
+                if 'viewCount' in videodata['items']['statistics']:
+                    count_views = videodata['items']['statistics']['viewCount']
                     print('viewCount aqui: ', count_views)
                 else:
                     count_views = None
@@ -135,7 +160,7 @@ class YouTubeView(APIView):
         else:
             count_views = None
         print('viewCount aqui: ', count_views)
-        
+
 
         if 'likeCount' in statistics['items']:
             count_likes=statistics['items']['statistics']['likeCount']
@@ -159,6 +184,7 @@ class YouTubeView(APIView):
             count_favorites=None
             count_comments=None
 
+<<<<<<< HEAD
             filtered_video_data = {
             
         '''   
@@ -185,7 +211,18 @@ class YouTubeView(APIView):
 
             'regionCode': regionCode)
         
+
+        
+
+        filtered_data = {
+                'count_views': count_views,
+                'count_likes': count_likes,
+                'count_dislikes': count_dislikes,
+                'count_favorites': count_favorites,
+                'count_comments': count_comments,
+        }
         return filtered_data
+
 
     def save_youtube_search(self, filtered_data):
         results = YouTubeSearch(
