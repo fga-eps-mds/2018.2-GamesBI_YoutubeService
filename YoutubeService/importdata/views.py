@@ -23,53 +23,32 @@ class YouTubeView(APIView):
         data = requests.get(url)
         ndata = data.json()
 
- 
-
-        filtered_data = self.filter_data(ndata)
-        self.save_youtube_search(filtered_data)
-        '''
-        games = YouTubeSearch.objects.all()
-
-        for game in games:
-            print('------------')
-            print(game.id)
-            print('------------')
-        '''
-
-        return Response(data=ndata)
-
-    def get_video_data(self,id):
-        YouTubeSearch.objects.all().delete()
-        header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
-        'Accept': 'application/json'}
-        url = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id={}&key={}'.format('cAB2rWSW4w0', header['user-key'])
-        data = requests.get(url)
-        ndata = data.json()
-
-        filtered_video_data = self.filter_video_data(ndata)
-        self.save_youtube_search(filtered_video_data)
-
-        return Response(data=ndata)
-
-
-
-        for i in range(50):
-            video_data = sel.get_video(list_id[i])
+        for i in range(49):
+            filtered_data = self.filter_data(ndata)
+            video_data = self.get_video(filtered_data['list_id'][i])
             filter_data_video = self.filter_data_video(video_data)
             if filter_data_video:
-                self.save_youtube_search(filter_data_video)
+                self.save_youtube_search(filtered_data, filter_data_video, i)
+
+        
 
         return Response(data=ndata)
 
+
+    
+
+
+       
     def get_video(self, idvideo):
         YouTubeSearch.objects.all().delete()
         header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
         'Accept': 'application/json'}
 
-        url = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id={}&key=AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw'.format(['videoId'])
+        url = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id={}&key=AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw'.format(idvideo)
         data = requests.get(url)
         ndata = data.json()
-        return Response(data=ndata)
+
+        return ndata
 
     def filter_data(self, videodata):
 
@@ -88,42 +67,6 @@ class YouTubeView(APIView):
             else:
                 id = None
 
-            filtered_data = {
-            'videoId': videoId,
-            }
-
-            return filtered_data
-
-
-    def filter_video_data(self, videodata):
-
-        if 'Unid' in videodata:
-
-            if 'viewCount' in videodata['Unid'][0]:
-                count_views=videodata['Unid'][0]['viewCount']
-            else:
-                count_views=None
-
-            if 'likeCount' in videodata['Unid'][0]:
-                count_likes=videodata['Unid'][0]['likeCount']
-            else:
-                count_views=None
-
-            if 'dislikeCount' in videodata['Unid'][0]:
-                count_dislikes=videodata['Unid'][0]['dislikeCount']
-
-            if 'favoriteCount' in videodata['Unid'][0]:
-                count_favorites=videodata['Unid'][0]['favoriteCount']
-
-            if 'commentCount' in videodata['Unid'][0]:
-                count_comments= videodata['Unid'][0]['commentCount']
-            else:
-                count_comments = None
-            
-
-        print('------------')
-        print(list_id)
-        print('------------')
 
         if 'regionCode' in videodata:
             regionCode = videodata['regionCode']
@@ -181,64 +124,37 @@ class YouTubeView(APIView):
             count_views=None
             count_likes=None
             count_dislikes=None
-            count_favorites=None
             count_comments=None
 
-<<<<<<< HEAD
-            filtered_video_data = {
-            
-        '''   
-        filtered_data = {
-            'list_id': list_id,
-            'count_views': count_views,
-            'count_likes': count_likes,
-            'count_dislikes': count_dislikes,
-            'count_favorites': count_favorites,
-            'count_comments': count_comments,
-            }
-
-            return filtered_video_data
-
-
-    def save_youtube_search(self, filtered_data, filtered_video_data):
-        results = YouTubeSearch(
-            id = filtered_data['id'],
-            count_views = filtered_video_data['count_views'],
-            count_likes = filtered_video_data['count_likes'],
-            count_dislikes = filtered_video_data['count_dislikes'],
-            count_favorites = filtered_video_data['count_favorites'],
-            count_comments = filtered_video_data['count_comments'],
-
-            'regionCode': regionCode)
-        
-
-        
+        '''
 
         filtered_data = {
                 'count_views': count_views,
                 'count_likes': count_likes,
                 'count_dislikes': count_dislikes,
                 'count_favorites': count_favorites,
-                'count_comments': count_comments,
+                'count_comments': count_comments
         }
         return filtered_data
 
 
-    def save_youtube_search(self, filtered_data):
+    def save_youtube_search(self, filtered_data, filtered_data_video, id):
+        
         results = YouTubeSearch(
-            id = filtered_data['list_id'],
+            list_id = filtered_data['list_id'][id],
             #name = filtered_data['name'],
-            count_views = filtered_data['count_views'],
-            count_likes = filtered_data['count_likes'],
-            count_dislikes = filtered_data['count_dislikes'],
-            count_favorites = filtered_data['count_favorites'],
-            count_comments = filtered_data['count_comments'],
-            regionCode = filtered_data['regionCode']
+            count_views = filtered_data_video['count_views'],
+            count_likes = filtered_data_video['count_likes'],
+            count_dislikes = filtered_data_video['count_dislikes'],
+            count_favorites = filtered_data_video['count_favorites'],
+            count_comments = filtered_data_video['count_comments']
+            #regionCode = filtered_data['regionCode']
         )
-
+        
         results.save()
-        print('Id video: {}\n'.format(results.id))
+        
         print('--------------\n')
-        print('lista de id dos videos:{}\ncount views: {}\ncount likes: {}\ncount dislikes: {}\n'.format(results.id, results.count_views, results.count_likes, results.count_dislikes))
+        print('id do video:{}\ncount views: {}\ncount likes: {}\ncount dislikes: {}\n'.format(results.list_id, results.count_views, results.count_likes, results.count_dislikes))
         print('count favorite: {}\ncount comments: {}'.format(results.count_favorites, results.count_comments))
-        print('--------------\n')
+       
+        
