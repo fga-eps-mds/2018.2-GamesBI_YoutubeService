@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from .models import YouTubeSearch
 
-
+#YouTubeSearch.objects.all().delete()
 
 class YouTubeView(APIView):
     '''
@@ -16,27 +16,29 @@ class YouTubeView(APIView):
 
     def get(self, request, format=None):
 
-        YouTubeSearch.objects.all().delete()
-        header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
-        'Accept': 'application/json'}
-        url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format('GTAV', header['user-key'])
-        data = requests.get(url)
-        ndata = data.json()
+        igdb_header = {'Accept': 'application/json'}
 
-        for i in range(49):
+        igdb_url = 'http://igdbweb:8000/api/get_igdb_games_list/name'
+        igdb_data = requests.get(igdb_url, headers=igdb_header).json()
+
+        for game in igdb_data:
+            print('pesquisando jogo: {}\n'.format(game['name']))
+            header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
+            'Accept': 'application/json'}
+            url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format(game['name'], header['user-key'])
+            data = requests.get(url)
+            ndata = data.json()
             filtered_data = self.filter_data(ndata)
-            video_data = self.get_video(filtered_data['list_id'][i])
-            filter_data_video = self.filter_data_video(video_data)
-            if filter_data_video:
-                self.save_youtube_search(filtered_data, filter_data_video, i)
+            for i in range(49):
+                
+                video_data = self.get_video(filtered_data['list_id'][i])
+                filter_data_video = self.filter_data_video(video_data)
+                if filter_data_video:
+                    self.save_youtube_search(filtered_data, filter_data_video, i, game['name'])
 
-        
-
+       
+                
         return Response(data=ndata)
-
-
-    
-
 
        
     def get_video(self, idvideo):
@@ -138,7 +140,7 @@ class YouTubeView(APIView):
         return filtered_data
 
 
-    def save_youtube_search(self, filtered_data, filtered_data_video, id):
+    def save_youtube_search(self, filtered_data, filtered_data_video, id, game_name):
         
         results = YouTubeSearch(
             list_id = filtered_data['list_id'][id],
@@ -153,8 +155,8 @@ class YouTubeView(APIView):
         
         results.save()
         
-        print('--------------\n')
-        print('id do video:{}\ncount views: {}\ncount likes: {}\ncount dislikes: {}\n'.format(results.list_id, results.count_views, results.count_likes, results.count_dislikes))
-        print('count favorite: {}\ncount comments: {}'.format(results.count_favorites, results.count_comments))
+        print('-----RELACIONADO AO JOGO: {}---------\n'.format(game_name))
+        print('video id: {}\nviews: {}\nlikes: {}\ndislikes: {}\n'.format(results.list_id, results.count_views, results.count_likes, results.count_dislikes))
+        print('favorites: {}\ncomments: {}'.format(results.count_favorites, results.count_comments))
        
         
