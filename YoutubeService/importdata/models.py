@@ -3,18 +3,11 @@ from django.db import models
 
 class YouTubeSearch(models.Model):
     
-    list_id = models.CharField(
+    id = models.CharField(
         ('Video ID'),
         help_text=("Video ID"),
         max_length=100,
         primary_key=True
-    )
-    
-    name = models.CharField(
-        ('Name'),
-        help_text=('Name of the game'),
-        max_length=100,
-        null=True
     )
 
     count_views = models.IntegerField(
@@ -44,13 +37,6 @@ class YouTubeSearch(models.Model):
     count_favorites = models.IntegerField(
         ('count_favorites'),
         help_text=("Number favorites of video"),
-        null=True
-    )
-    
-    regionCode = models.CharField(
-        ('regionCode'),
-        help_text=(''),
-        max_length=10,
         null=True
     )
     
