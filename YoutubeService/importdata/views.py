@@ -17,30 +17,36 @@ class YouTubeView(APIView):
     def get(self, request, format=None):
 
         igdb_header = {'Accept': 'application/json'}
-
         igdb_url = 'http://igdbweb:8000/api/get_igdb_games_list/name'
         igdb_data = requests.get(igdb_url, headers=igdb_header).json()
-
+        
+        i = 0
+        YouTubeSearch.objects.all()
         for game in igdb_data:
-            print('pesquisando jogo: {}\n'.format(game['name']))
+            print('NOME DO JOGO: ' + game['name'])
+            print("  ")
+            print(" --------------------------------- ")
+            print("  ")
             header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
             'Accept': 'application/json'}
             url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format(game['name'], header['user-key'])
             data = requests.get(url)
             ndata = data.json()
             filtered_data = self.filter_data(ndata)
-            for i in range(49):
-                
-                video_data = self.get_video(filtered_data['list_id'][i])
+
+            for id in filtered_data['list_id']:
+                video_data = self.get_video(id)
                 filter_data_video = self.filter_data_video(video_data)
                 if filter_data_video:
-                    self.save_youtube_search(filtered_data, filter_data_video, i, game['name'])
+                    self.save_youtube_search(filter_data_video)
+                    print("Video de id " + str(id) + " salvo com sucesso!")
+                    i = i + 1
+                    print("Numero de videos baixados: " + str(i))
+                    print(" ")
 
-       
-                
-        return Response(data=ndata)
+        return Response(data=igdb_data)
 
-       
+
     def get_video(self, idvideo):
         YouTubeSearch.objects.all().delete()
         header = {'user-key': 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw',
@@ -54,26 +60,25 @@ class YouTubeView(APIView):
 
     def filter_data(self, videodata):
 
-        list_id = []
-
-        for i in range(50):
-            if 'items' in videodata:
-                if 'id' in videodata['items'][i]:
-                    if 'videoId' in videodata['items'][i]['id']:
-                        id = videodata['items'][i]['id']['videoId']
-                        list_id.append(id)
-                    else:
-                        id = None
-                else:
-                    id = None
-            else:
-                id = None
-
-
         if 'regionCode' in videodata:
             regionCode = videodata['regionCode']
         else:
             regionCode = None
+
+        items = []
+        if 'items' in videodata:
+            items = videodata['items']
+
+        list_id = []
+        for item in items:
+            if 'id' in item:
+                if 'videoId' in item['id']:
+                    id = item['id']['videoId']
+                    list_id.append(id)
+                else:
+                    id = None
+            else:
+                id = None
 
         filtered_data = {
             'list_id': list_id,
@@ -83,67 +88,68 @@ class YouTubeView(APIView):
 
     def filter_data_video(self, videodata):
 
-        count_views = videodata['items'][0]['statistics']['viewCount']
-        count_likes = videodata['items'][0]['statistics']['likeCount']
-        count_dislikes = videodata['items'][0]['statistics']['dislikeCount']
-        count_favorites = videodata['items'][0]['statistics']['favoriteCount']
-        count_comments = videodata['items'][0]['statistics']['commentCount']
-
-        '''
-        print('----------------\n', videodata)
         if 'items' in videodata:
-            print('tem item')
+
+            if 'id' in videodata['items']:
+                id = videodata['items']['id']
+            else:
+                id = None
+
             if 'statistics' in videodata['items']:
-                print('tem statistics\n')
                 if 'viewCount' in videodata['items']['statistics']:
                     count_views = videodata['items']['statistics']['viewCount']
-                    print('viewCount aqui: ', count_views)
                 else:
                     count_views = None
+
+                if 'likeCount' in videodata['items']['statistics']:
+                    count_likes = videodata['items']['statistics']['likeCount']
+                else:
+                    count_likes = None
+
+                if 'dislikeCount' in videodata['items']['statistics']:
+                    count_dislikes = videodata['items']['statistics']['dislikeCount']
+                else:
+                    count_dislikes = None
+
+                if 'favoriteCount' in videodata['items']['statistics']:
+                    count_favorites = videodata['items']['statistics']['favoriteCount']
+                else:
+                    count_favorites = None
+
+                if 'commentCount' in videodata['items']['statistics']:
+                    count_comments = videodata['items']['statistics']['commentCount']
+                else:
+                    count_comments = None
             else:
+                id = None
                 count_views = None
+                count_likes = None
+                count_dislikes = None
+                count_favorites = None
+                count_comments = None
         else:
+            id = None
             count_views = None
-        print('viewCount aqui: ', count_views)
-
-
-        if 'likeCount' in statistics['items']:
-            count_likes=statistics['items']['statistics']['likeCount']
-        else:
-            count_likes=None
-
-        if 'dislikeCount' in statistics:
-            count_dislikes=statistics['items']['statistics']['dislikeCount']
-        else:
+            count_likes = None
             count_dislikes = None
-
-        if 'commentCount' in statistics:
-            count_comments= statistics['items']['statistics']['commentCount']
-        else:
+            count_favorites = None
             count_comments = None
 
-        else:
-            count_views=None
-            count_likes=None
-            count_dislikes=None
-            count_comments=None
-
-        '''
-
         filtered_data = {
-                'count_views': count_views,
-                'count_likes': count_likes,
-                'count_dislikes': count_dislikes,
-                'count_favorites': count_favorites,
-                'count_comments': count_comments
+            'id': id,
+            'count_views': count_views,
+            'count_likes': count_likes,
+            'count_dislikes': count_dislikes,
+            'count_favorites': count_favorites,
+            'count_comments': count_comments
         }
         return filtered_data
 
 
-    def save_youtube_search(self, filtered_data, filtered_data_video, id, game_name):
-        
+    def save_youtube_search(self, filtered_data_video):
+
         results = YouTubeSearch(
-            list_id = filtered_data['list_id'][id],
+            list_id = filtered_data_video['id'],
             #name = filtered_data['name'],
             count_views = filtered_data_video['count_views'],
             count_likes = filtered_data_video['count_likes'],
@@ -152,11 +158,9 @@ class YouTubeView(APIView):
             count_comments = filtered_data_video['count_comments']
             #regionCode = filtered_data['regionCode']
         )
-        
+
         results.save()
-        
-        print('-----RELACIONADO AO JOGO: {}---------\n'.format(game_name))
-        print('video id: {}\nviews: {}\nlikes: {}\ndislikes: {}\n'.format(results.list_id, results.count_views, results.count_likes, results.count_dislikes))
-        print('favorites: {}\ncomments: {}'.format(results.count_favorites, results.count_comments))
-       
-        
+        #
+        # print('-----RELACIONADO AO JOGO: {}---------\n'.format(game_name))
+        # print('video id: {}\nviews: {}\nlikes: {}\ndislikes: {}\n'.format(results.list_id, results.count_views, results.count_likes, results.count_dislikes))
+        # print('favorites: {}\ncomments: {}'.format(results.count_favorites, results.count_comments))
