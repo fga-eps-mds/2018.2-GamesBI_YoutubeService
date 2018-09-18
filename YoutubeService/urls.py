@@ -18,5 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('YoutubeService.API.urls')),
     path('import_data/', include ('YoutubeService.importdata.urls'))
 ]

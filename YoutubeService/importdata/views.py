@@ -147,6 +147,7 @@ class YouTubeView(APIView):
         results=Game(
             id=statistics['id'],
             name=statistics['name'],
+            count_videos=statistics['count_videos'],
             count_views=statistics['count_views'],
             count_likes=statistics['count_likes'],
             count_dislikes=statistics['count_dislikes'],
