@@ -14,7 +14,7 @@ class YouTubeView(APIView):
 
     def get(self, request, format=None):
 
-        Game.objects.all()
+        # Game.objects.all().delete()
         igdb_game_list = self.get_igdb_game_list()
         qtd_jogos = 0
         qtd_videos=0
