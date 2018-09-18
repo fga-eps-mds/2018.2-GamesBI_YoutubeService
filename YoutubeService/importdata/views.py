@@ -2,7 +2,7 @@ import requests
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import YouTubeSearch
+from .models import Game
 
 class YouTubeView(APIView):
     '''
@@ -14,24 +14,25 @@ class YouTubeView(APIView):
 
     def get(self, request, format=None):
 
-        YouTubeSearch.objects.all()
+        Game.objects.all()
         igdb_game_list = self.get_igdb_game_list()
         qtd_jogos = 0
         qtd_videos=0
         for game in igdb_game_list:
+            game_name = game['name']
+            search_on_youtube = self.get_search_result(game_name)
+            list_id = self.filter_data(search_on_youtube)
 
             statistics = {
                 'id':qtd_jogos,
-                'name': game['name'],
+                'name': game_name,
+                'count_videos': len(list_id),
                 'count_views': 0,
                 'count_likes': 0,
                 'count_dislikes': 0,
                 'count_favorites': 0,
                 'count_comments': 0
             }
-
-            search_on_youtube = self.get_search_result(statistics['name'])
-            list_id = self.filter_data(search_on_youtube)
 
             for id in list_id:
                 video_data = self.get_video_data(id)
@@ -57,6 +58,7 @@ class YouTubeView(APIView):
     def do_log_game(self, game_info):
         print("DADOS DO JOGO ATUAL: ")
         print("Nome: {}" .format(game_info['name']))
+        print("Videos: {} ".format(game_info['count_videos']))
         print("Views: {}" .format(game_info['count_views']))
         print("Likes: {}" .format(game_info['count_likes']))
         print("Dislikes: {}" .format(game_info['count_dislikes']))
@@ -80,7 +82,6 @@ class YouTubeView(APIView):
 
 
     def get_video_data(self, idvideo):
-        YouTubeSearch.objects.all().delete()
         header = {'Accept': 'application/json'}
         key = 'AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw'
         url = 'https://www.googleapis.com/youtube/v3/videos?part=statistics&id={}&key={}'.format(idvideo, key)
@@ -143,8 +144,8 @@ class YouTubeView(APIView):
 
 
     def save_youtube_search(self, statistics):
-        results=YouTubeSearch(
-            id=statistics['id']
+        results=Game(
+            id=statistics['id'],
             name=statistics['name'],
             count_views=statistics['count_views'],
             count_likes=statistics['count_likes'],
