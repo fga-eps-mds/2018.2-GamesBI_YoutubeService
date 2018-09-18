@@ -13,7 +13,8 @@ script:
   - docker-compose up -d
   - sleep 10
   - docker-compose run youtubeweb coverage run --source=. manage.py test
+  - docker-compose run youtubeweb coverage report
 
 after_success:
-  - coveralls
+  - docker-compose run youtubeweb coveralls
 

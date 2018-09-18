@@ -18,7 +18,9 @@ services:
       - youtubedb
     networks:
       - proxynet
-
+    environment:
+      - COVERALLS_REPO_TOKEN
+      
 networks:
     proxynet:
       name: GamesBI-network
