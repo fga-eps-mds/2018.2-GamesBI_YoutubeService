@@ -48,3 +48,7 @@ fixture:
 loaddata:
 	# load fixtures saved upon importdata models
 	sudo docker-compose run youtubeweb python manage.py loaddata data.json
+
+test:
+	# load fixtures saved upon importdata models
+	sudo docker-compose run youtubeweb python manage.py test
