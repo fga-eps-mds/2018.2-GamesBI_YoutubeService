@@ -76,7 +76,7 @@ class YouTubeView(APIView):
     def get_search_result(self, game_name):
         header={'Accept':'application/json'}
         key='AIzaSyDmDXP_gaB7cog4f0slbbdJ3RACsY5WQIw'
-        url='https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}&key={}'.format(game_name, key)
+        url='https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q={}GAMEPLAY&key={}'.format(game_name, key)
         result=requests.get(url).json()
         return result
 
